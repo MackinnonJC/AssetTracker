@@ -1,21 +1,13 @@
 
-
-function formatTime(date) {
-  var originalHours = Utilities.formatDate(date, 'America/New_York', 'HH');
-  var originalMinutes = Utilities.formatDate(date, 'America/New_York', 'mm');
-  var hours = parseInt(originalHours);
-  if (hours > 12) {
-    hours -= 12;
-  }
-  return hours + ":" + originalMinutes;
-}
-
 function obtainMainInfo(data) {
   let info = "";
   var list = {};
+  let rows = data.split("\n").slice(1)
+  console.log(rows)
   // Format: Every person is an entry in list, then for every person there is another list with all the tools correlating to their times.
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i]
+  for (var i = 0; i < rows.length; i ++) {
+    var row = rows[i].split(",");
+    console.log(row);
     var tool = row[1];
     var checkedIn = row[3];
     var checkedOut = row[2];
@@ -25,10 +17,11 @@ function obtainMainInfo(data) {
 
     var status = "";
     // An empty cell returns an empty string instead of an object. I use typeof to determine empty cell
-    if (typeof(checkedIn) == "string") {
+    console.log(checkedIn == "");
+    if (checkedIn == "\r" || checkedIn == "") {
       status = "";
     } else {
-      status = " (at " + formatTime(checkedOut) + ")";
+      status = " (at " + checkedOut + ")";
     }
     list[name][tool] = status;
   }
@@ -55,3 +48,23 @@ function obtainMainInfo(data) {
   }
   return info;
 }
+
+function ready() {
+  document.getElementById("FileHolder").innerHTML = "<input type=\"file\" id=\"FileInput\">"
+  let fileSelector = document.getElementById("FileInput");
+  fileSelector.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    console.log(file)
+    let fileReader = new FileReader(); 
+      fileReader.readAsText(file); 
+      fileReader.onload = function() {
+        let info = obtainMainInfo(fileReader.result);
+        document.getElementById("Content").innerHTML = info;
+        ready();
+      }; 
+      fileReader.onerror = function() {
+        alert(fileReader.error);
+      }; 
+  })  
+}
+ready();
